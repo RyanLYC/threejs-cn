@@ -1,5 +1,5 @@
 <template>
-  <div class="scene" ref="sceneDiv">6666</div>
+  <div class="scene" ref="sceneDiv"></div>
 </template>
 
 <script lang="ts" setup>
@@ -10,6 +10,8 @@ import scene from '@/three/scene'
 import camera from '@/three/camera'
 // 导入渲染器
 import renderer from '@/three/renderer'
+// 导入css 3d渲染器
+import css3dRenderer from '@/three/css3dRenderer'
 // 导入gui对象
 // import gui from '@/three/gui'
 // 导入辅助坐标轴
@@ -33,6 +35,7 @@ createMesh()
 onMounted(() => {
   if (sceneDiv.value) {
     sceneDiv.value.appendChild(renderer.domElement)
+    sceneDiv.value.appendChild(css3dRenderer.domElement)
     animate()
   }
 })
