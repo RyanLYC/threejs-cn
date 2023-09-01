@@ -1,10 +1,11 @@
-import { createApp, reactive, watch } from 'vue'
+import { createApp, watch } from 'vue'
 import type THREE from 'three'
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader'
-import { scaleObj, getObjSize } from '../../objUtil'
+import { scaleObj, getObjSize, cleanObj } from '../../objUtil'
 import { CSS3DObject } from 'three/examples/jsm/renderers/CSS3DRenderer'
 import ModelTag from './ModelTag.vue'
 import mixer from '../../mixer'
+import type { DianGuiDataI } from '@/components/Scene/types'
 
 interface OptionsI {
   rotation: THREE.Vector3
@@ -32,23 +33,22 @@ export default class DanGui {
   cssObj: CSS3DObject | null = null
 
   action: THREE.AnimationAction | null = null
+  dianGuiData: DianGuiDataI
 
-  userData = reactive({
-    unitCode: '', // 储能柜单元编号
-    phaseCode: '', // 储能柜相编号
-    phaseData: null, // 相数据
-    runStatus: { val: (Math.random() * 5).toFixed(0) },
-    activeCode: 'default', // 展示模式
-  })
-
-  constructor(scene: THREE.Scene, options: OptionsI) {
+  constructor(
+    scene: THREE.Scene,
+    options: OptionsI,
+    cabinets: THREE.Group[],
+    dianGuiData: DianGuiDataI
+  ) {
     // 载入模型
     this.scene = scene
+    this.dianGuiData = dianGuiData
     this.loader = new GLTFLoader()
 
     this.loader.load('./models/laicheng/dangui_animation.gltf', (gltf) => {
       this.gltf = gltf
-      // console.log(gltf)
+      cabinets.push(this.gltf.scene)
 
       this.options = options
       scene.add(gltf.scene)
@@ -87,6 +87,8 @@ export default class DanGui {
         material.transparent = false
         child.castShadow = true
       }
+      // @ts-ignore 为点击事件 自定义一个属性 返回 数据 索引
+      child.customIndex = this.dianGuiData.index
     }
   }
   // 按物理大小 缩放站点模型
@@ -108,7 +110,7 @@ export default class DanGui {
       const element = document.createElement('div') as HTMLElement
 
       const app = createApp(ModelTag, {
-        userData: this.userData,
+        userData: this.dianGuiData,
       })
       app.mount(element)
 
@@ -167,13 +169,13 @@ export default class DanGui {
   handleChargeAnimation() {
     // 运行状态  1：停机 2：待机 3：充电 4：放电 其他值:未知
     watch(
-      () => this.userData.runStatus,
+      this.dianGuiData.runStatus,
       () => {
-        // console.log('this.userData.runStatus:', this.userData.runStatus)
+        // console.log('this.userData.runStatus:', this.dianGuiData.runStatus)
         if (this.action) {
           this.action.stop()
         }
-        const runStatusVal = this.userData.runStatus?.val
+        const runStatusVal = this.dianGuiData.runStatus?.val
         this.setCharge(+runStatusVal === 3)
         this.setDischarge(+runStatusVal === 4)
         this.setStop(+runStatusVal === 1)
@@ -190,7 +192,17 @@ export default class DanGui {
           this.action.play()
         }
       },
-      { immediate: true, deep: true }
+      { immediate: true }
     )
+  }
+
+  /**
+   * 销毁模型
+   */
+  dispose() {
+    if (this.gltf) {
+      cleanObj(this.gltf.scene)
+      this.gltf = null
+    }
   }
 }

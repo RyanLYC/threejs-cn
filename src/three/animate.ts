@@ -5,7 +5,7 @@ import controls from './controls'
 import scene from './scene'
 import css3dRenderer from '@/three/css3dRenderer'
 import mixer from './mixer'
-import { updateMesh } from './createMesh'
+import { updateLaiChengMesh } from './createMesh'
 
 const clock = new THREE.Clock()
 function animate() {
@@ -14,7 +14,7 @@ function animate() {
 
   controls.update()
 
-  updateMesh()
+  updateLaiChengMesh()
 
   requestAnimationFrame(animate)
   // 使用渲染器渲染相机看这个场景的内容渲染出来

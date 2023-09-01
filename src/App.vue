@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Scene from '@/components/Scene.vue'
+import Scene from '@/components/Scene/index.vue'
 </script>
 
 <template>

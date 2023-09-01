@@ -1,9 +1,11 @@
 import * as THREE from 'three'
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader'
-import { scaleObj } from '../../objUtil'
+import { scaleObj, cleanObj } from '../../objUtil'
 import DianGui from '../DanGui'
 import texturePath from './texture.png'
 import TreeModel from '../TreeModel'
+import raycasterModlue from '../../raycaster'
+import type { DianGuiDataI } from '@/components/Scene/types'
 
 /**
  * laicheng 对象
@@ -21,9 +23,15 @@ export default class LaiCheng {
 
   tubeMaterial: THREE.MeshBasicMaterial | null = null
 
-  constructor(scene: THREE.Scene) {
+  /**机柜集合 */
+  cabinets: THREE.Group[] = []
+  dianGuis: DianGui[] = []
+  dianGuisDataList: DianGuiDataI[]
+
+  constructor(scene: THREE.Scene, dianGuisDataList: DianGuiDataI[]) {
     // 载入模型
     this.scene = scene
+    this.dianGuisDataList = dianGuisDataList
     this.loader = new GLTFLoader()
     // const dracoLoader = new DRACOLoader()
     // dracoLoader.setDecoderPath('./draco/')
@@ -98,34 +106,34 @@ export default class LaiCheng {
   /**添加电柜 */
   addDanguis() {
     if (this.gltf) {
-      Array.from({ length: 14 }).forEach((item, index) => {
-        ;['a', 'b', 'c'].forEach((phaseCode) => {
-          const unitCode = index + 1
-          const obj = this.gltf!.scene.getObjectByName(
-            `zhanwei${unitCode}${phaseCode}`
-          )
-          // console.log('obj:', obj)
-          if (obj) {
-            // const { size, center } = getObjBoundingRect(obj)
-            // const vector = getVertexVector(size, center, 'rbc')
-            // console.log('vector:', vector)
-            // console.log('obj position:', obj.position.clone())
-            const diangui = new DianGui(this.gltf!.scene as any, {
+      this.dianGuis = []
+      this.dianGuisDataList.forEach((item) => {
+        const { unitCode, phaseCode } = item
+        const obj = this.gltf!.scene.getObjectByName(
+          `zhanwei${unitCode}${phaseCode}`
+        )
+        // console.log('obj:', obj)
+        if (obj) {
+          // const { size, center } = getObjBoundingRect(obj)
+          // const vector = getVertexVector(size, center, 'rbc')
+          // console.log('vector:', vector)
+          // console.log('obj position:', obj.position.clone())
+          const dianGui = new DianGui(
+            this.gltf!.scene as any,
+            {
               vectorInParent: obj.position.clone(),
-              // vectorInModel: 'rbc',
+
               rotation:
                 (unitCode === 6 && phaseCode === 'c') || unitCode >= 7
                   ? new THREE.Vector3(0, Math.PI, 0)
                   : new THREE.Vector3(),
-            })
-            diangui.userData.unitCode = unitCode.toString()
-            diangui.userData.phaseCode = phaseCode.toUpperCase()
-            obj.removeFromParent()
-            // setTimeout(() => {
-            //   diangui.userData.runStatus.val = '1'
-            // }, 10000)
-          }
-        })
+            },
+            this.cabinets,
+            item
+          )
+          this.dianGuis.push(dianGui)
+          obj.removeFromParent()
+        }
       })
     }
   }
@@ -257,6 +265,39 @@ export default class LaiCheng {
   addTreeModel() {
     if (this.gltf) {
       new TreeModel(this.gltf.scene as any)
+    }
+  }
+
+  /**选择电池柜 */
+  selectCabinet(x: number, y: number) {
+    let data = null
+    raycasterModlue.setFromCamera(x, y)
+    // 选择机柜
+    const intersect = raycasterModlue.raycaster.intersectObjects(
+      this.cabinets
+    )[0]
+    const intersectObj = intersect ? intersect.object : null
+    // console.log('intersectObj:', intersectObj)
+    // @ts-ignore
+    if (intersectObj && intersectObj.customIndex !== undefined) {
+      // @ts-ignore
+      const index = intersectObj.customIndex
+      data = this.dianGuisDataList[index]
+      console.log('data:', data)
+    }
+    return data
+  }
+
+  /**
+   * 销毁模型
+   */
+  dispose() {
+    if (this.gltf) {
+      this.dianGuis.forEach((item) => {
+        item.dispose()
+      })
+      cleanObj(this.gltf.scene)
+      this.gltf = null
     }
   }
 }

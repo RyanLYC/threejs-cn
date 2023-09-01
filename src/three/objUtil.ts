@@ -47,6 +47,18 @@ export function getObjBoundingRect(obj: THREE.Object3D) {
 }
 
 /**
+ * 彻底移除对象
+ */
+export function cleanObj(obj: THREE.Object3D) {
+  if (obj.children && obj.children.length) {
+    obj.remove(...obj.children)
+  }
+  if (obj.parent) {
+    obj.removeFromParent()
+  }
+}
+
+/**
  * 获取模型外切长方体顶点坐标 center(模型中心) bbl(后面底部左顶点) bbr(后面底部右顶点) btl(后面顶部左顶点) btr(后面顶部右顶点) fbl(前面底部左顶点) fbr(前面底部右顶点) ftl(前面顶部左顶点) ftr(前面顶部右顶点)
  * @param size
  * @param center
