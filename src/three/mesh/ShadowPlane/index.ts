@@ -23,6 +23,7 @@ export default function createShadowPlane(
   //   opacity,
   // })
   const plane = new THREE.Mesh(planeGeometry, planeMaterial)
+  plane.name = '接收阴影的平面'
   plane.receiveShadow = true
   scene.add(plane)
 

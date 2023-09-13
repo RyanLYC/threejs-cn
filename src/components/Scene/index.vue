@@ -22,10 +22,15 @@ import animate from '@/three/animate'
 import createLaiChengMesh, {
   clickLaiChengMesh,
   disposeLaiChengMesh,
+  createBatteryCabinetMesh,
+  clickBatteryCluster,
+  createBatteryCluster,
+  clickBatteryPack,
 } from '@/three/createMesh'
 // 初始化调整屏幕
 import '@/three/init'
 import type { DianGuiDataI } from './types'
+import cuList from './cuData.json'
 
 // 场景元素div
 let sceneDiv = ref<HTMLElement>()
@@ -51,11 +56,11 @@ const init = () => {
       index++
     })
   }
-  setInterval(() => {
-    dianGuisDataList.value.forEach((item) => {
-      item.runStatus.val = (Math.random() * 5).toFixed(0)
-    })
-  }, 30000)
+  // setInterval(() => {
+  //   dianGuisDataList.value.forEach((item) => {
+  //     item.runStatus.val = (Math.random() * 5).toFixed(0)
+  //   })
+  // }, 30000)
 }
 
 init()
@@ -77,9 +82,29 @@ onUnmounted(() => {
 const clickHandler = (event: MouseEvent) => {
   const data = clickLaiChengMesh(event.clientX, event.clientY)
   if (data) {
-    // 销毁laicheng 创建 选择的 电池柜
     disposeLaiChengMesh()
+    // 创建电池柜
+    //     {
+    //     "unitCode": 6,
+    //     "phaseCode": "b",
+    //     "runStatus": {
+    //         "val": "2"
+    //     },
+    //     "index": 16
+    // }
+    // get 电池簇信息
+    createBatteryCabinetMesh(data, cuList)
+    return
   }
+  const cuData = clickBatteryCluster(event.clientX, event.clientY)
+  if (cuData) {
+    disposeLaiChengMesh()
+    console.log('scene:', scene)
+    // get 电池pack 信息
+    createBatteryCluster(cuData)
+    return
+  }
+  clickBatteryPack(event.clientX, event.clientY)
 }
 </script>
 <style scoped lang="scss">

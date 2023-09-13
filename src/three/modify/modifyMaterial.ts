@@ -1,6 +1,6 @@
 import type THREE from 'three'
-import vertex from '@/shader/planeColor/basic/vertex.glsl?raw'
-import fragment from '@/shader/planeColor/basic/fragment.glsl?raw'
+import vertex from '@/shader/planeColor/vertex.glsl?raw'
+import fragment from '@/shader/planeColor/fragment.glsl?raw'
 
 function shaderColor(
   mesh: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshStandardMaterial>

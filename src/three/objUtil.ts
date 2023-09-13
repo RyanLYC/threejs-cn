@@ -1,4 +1,9 @@
 import * as THREE from 'three'
+import { createApp } from 'vue'
+import { CSS3DObject } from 'three/examples/jsm/renderers/CSS3DRenderer'
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js'
+const fontPath = './models/fonts/optimer_regular.typeface.json'
 
 /**
  * 返回包围盒的宽度，高度，和 深度
@@ -44,6 +49,20 @@ export function getObjBoundingRect(obj: THREE.Object3D) {
     center,
     position: obj.position.clone(),
   }
+}
+
+/**
+ * 合成方法，获取对象的指定坐标
+ * @param obj
+ * @param vectorInModel
+ * @returns
+ */
+export const getObjVertexVector = (
+  obj: THREE.Object3D,
+  vectorInModel = 'center'
+) => {
+  const { size, center } = getObjBoundingRect(obj)
+  return getVertexVector(size, center, vectorInModel)
 }
 
 /**
@@ -157,4 +176,42 @@ export function moveObjToPosition(
   const { size, position, center } = getObjBoundingRect(obj)
   const positionVector = getVertexVector(size, center, vectorInModel)
   obj.position.copy(vectorInParent.clone().sub(position).sub(positionVector))
+}
+
+export function createVueCss3Object(
+  Component: any,
+  userData: any,
+  scaleRate = 0.01
+) {
+  const element = document.createElement('div') as HTMLElement
+  const app = createApp(Component, {
+    userData,
+  })
+  app.mount(element)
+
+  const cssObj = new CSS3DObject(element)
+  cssObj.scale.multiplyScalar(scaleRate)
+  cssObj.element.style.pointerEvents = 'none'
+
+  return cssObj
+}
+
+/**创建一个文本，因为需要加载字体，所以是一个promise */
+export const createTextPromise = (textStr: string, color = 0xff0000) => {
+  return new Promise<THREE.Mesh<TextGeometry, THREE.MeshBasicMaterial>>(
+    (resolve) => {
+      const loader = new FontLoader()
+      loader.load(fontPath, (font) => {
+        const textGeo = new TextGeometry(textStr, {
+          font,
+          size: 0.12,
+          height: 0.01,
+        })
+        const material = new THREE.MeshBasicMaterial({ color })
+        const textMesh = new THREE.Mesh(textGeo, material)
+        textGeo.computeBoundingBox()
+        resolve(textMesh)
+      })
+    }
+  )
 }

@@ -1,8 +1,13 @@
-import { createApp, watch } from 'vue'
+import { watch } from 'vue'
 import type THREE from 'three'
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader'
-import { scaleObj, getObjSize, cleanObj } from '../../objUtil'
-import { CSS3DObject } from 'three/examples/jsm/renderers/CSS3DRenderer'
+import {
+  scaleObj,
+  getObjSize,
+  cleanObj,
+  createVueCss3Object,
+} from '../../objUtil'
+import type { CSS3DObject } from 'three/examples/jsm/renderers/CSS3DRenderer'
 import ModelTag from './ModelTag.vue'
 import mixer from '../../mixer'
 import type { DianGuiDataI } from '@/components/Scene/types'
@@ -107,16 +112,7 @@ export default class DanGui {
     }
     if (this.gltf) {
       const size = getObjSize(this.gltf.scene)
-      const element = document.createElement('div') as HTMLElement
-
-      const app = createApp(ModelTag, {
-        userData: this.dianGuiData,
-      })
-      app.mount(element)
-
-      this.cssObj = new CSS3DObject(element)
-      this.cssObj.scale.multiplyScalar(0.2)
-      this.cssObj.element.style.pointerEvents = 'none'
+      this.cssObj = createVueCss3Object(ModelTag, this.dianGuiData, 0.2)
       this.cssObj.rotation.set(Math.PI / 2, Math.PI, 0)
 
       const position = this.options!.vectorInParent.clone()
@@ -127,14 +123,16 @@ export default class DanGui {
     }
   }
   setStatus(name: string, name1: string | null, visible: boolean) {
-    const obj = this.gltf!.scene.getObjectByName(name)
-    if (obj) {
-      obj.visible = visible
-    }
-    if (name1) {
-      const obj2 = this.gltf!.scene.getObjectByName(name1)
-      if (obj2) {
-        obj2.visible = visible
+    if (this.gltf) {
+      const obj = this.gltf.scene.getObjectByName(name)
+      if (obj) {
+        obj.visible = visible
+      }
+      if (name1) {
+        const obj2 = this.gltf!.scene.getObjectByName(name1)
+        if (obj2) {
+          obj2.visible = visible
+        }
       }
     }
   }

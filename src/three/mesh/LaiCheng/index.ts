@@ -107,6 +107,7 @@ export default class LaiCheng {
   addDanguis() {
     if (this.gltf) {
       this.dianGuis = []
+      this.cabinets = []
       this.dianGuisDataList.forEach((item) => {
         const { unitCode, phaseCode } = item
         const obj = this.gltf!.scene.getObjectByName(

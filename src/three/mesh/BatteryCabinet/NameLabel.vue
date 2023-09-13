@@ -1,6 +1,6 @@
 <template>
-  <div class="model-tag" v-once>
-    {{ userData.unitCode }}{{ userData.phaseCode }}
+  <div class="name-label">
+    #{{ userData?.unitCode }}储能单元{{ userData?.phaseCode }}相
   </div>
 </template>
 <script lang="ts" setup>
@@ -14,9 +14,10 @@ defineProps({
 })
 </script>
 <style lang="scss" scoped>
-.model-tag {
+.name-label {
+  padding: 5px 10px;
   font-size: 12px;
-  color: #fff;
-  text-transform: uppercase;
+  color: #06386d;
+  background: #fff;
 }
 </style>
